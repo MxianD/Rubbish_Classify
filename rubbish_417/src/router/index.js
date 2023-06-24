@@ -5,6 +5,8 @@ import Upload from "@/components/Upload.vue";
 import History from "@/components/History.vue";
 import Tips from "@/components/Tips.vue";
 import Login from "@/components/Login.vue"
+import Register from "@/components/Register.vue"
+import UploadVideo from '@/components/UploadVideo.vue'
 
 const router = createRouter({
     history: createWebHistory(
@@ -34,11 +36,20 @@ const router = createRouter({
                 name: "tips",
                 component: Tips
             },
+            {
+                path: "/uploadVideo",
+                name: "uploadVideo",
+                component:UploadVideo
+            }
         ]
     }, {       
         path: "/login",
         name: "login",
         component: Login
+    },{
+        path: "/register",
+        name: "register",
+       component:Register
     }
     ]
 })

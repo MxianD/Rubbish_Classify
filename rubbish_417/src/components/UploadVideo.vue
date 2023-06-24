@@ -4,21 +4,6 @@
       <div style="margin-top: 50px">
         <h1>上传图片:</h1>
       </div>
-      <el-upload
-        ref="upload"
-        action="1"
-        list-type="picture-card"
-        :on-preview="handlePictureCardPreview"
-        :on-remove="handleRemove"
-        :auto-upload="false"
-        :multiple="true"
-        :before-upload="beforeAvatarUploadImage"
-        :file-list="fileList"
-        :on-change="onchange"
-        style="margin-top: 20px"
-      >
-        <i class="el-icon-plus"></i>
-      </el-upload>
     </div>
     <div class="progress_bar">
       <div style="flex: 1"><h1 style="white-space: nowrap">识别进度</h1></div>
@@ -41,14 +26,14 @@
             <div slot="header" class="clearfix">
               <span style="font-size: 20px">识别结果</span>
             </div>
-            <el-table :data="result_data" stripe style="width: 100%">
-              <el-table-column label="图片序号" type="index" width="100" :index="indexMethod" >
-              </el-table-column>
-              <el-table-column prop="Bgroup" label="大类" width="180">
-              </el-table-column>
-              <el-table-column prop="Sgroup" label="小类" width="180">
-              </el-table-column>
-            </el-table>
+            <div
+              v-for="o in this.result_data.length"
+              :key="o"
+              class="text item"
+              style="margin-top: 20px"
+            >
+              {{ "图片" + o }}:{{ result_data[o - 1] }}
+            </div>
           </el-card>
         </div>
       </div>
@@ -70,7 +55,7 @@
 <script>
 import request from "@/utils/request.js";
 export default {
-  name: "Upload",
+  name: "UploadVideo",
   component: {},
   data() {
     return {
@@ -83,10 +68,6 @@ export default {
     };
   },
   methods: {
-    //card行号
-    indexMethod(index) {
-        return index;
-      },
     // 判断图片格式
     beforeAvatarUploadImage(file) {
       const isJpeg = file.type === "image/png" || file.type === "image/jpg";
@@ -119,16 +100,11 @@ export default {
       this.result_data = [];
       this.identify_percentage = 0;
     },
-    uploadForm() {
-      if (this.fileList.length === 0) {
-        this.$message.warning("请选取文件");
-        // console.log("请选取文件");
-        return;
-      }
+      uploadForm() {
       const formData = new FormData();
       this.fileList.forEach((file) => {
         console.log("files", file.raw, file.name);
-        formData.append("file", file.raw, file.name);
+        formData.append("files", file.raw, file.name);
       });
       formData.append("username", this.username); // 自定义参数
       console.log("formData", formData.getAll("files")[0]);
@@ -210,7 +186,7 @@ export default {
 }
 
 .box-card {
-  width: 500px;
+  width: 400px;
 }
 .end {
   display: flex;
