@@ -69,7 +69,6 @@
 
 <script>
 import request from "@/utils/request.js";
-import { setTransitionHooks } from "vue";
 export default {
   name: "History",
   component: {},
@@ -114,17 +113,17 @@ export default {
           bgourp: this.search,
         },
       }).then((res) => {
+        console.log('length ', res.records.length);
+        let img_path = res.records[i].image_path.replace(/\\/g, '/').replace(/^.*validate\//, '../../public/');
         // 将数据赋值给tableData
         for (let i = 0; i < res.records.length; i++) {
           this.tableData.push({
-            img_path: res.records[i].img_path,
+            img_path: img_path,
             process_time: res.records[i].process_time,
             Bgroup: JSON.stringify(res.records[i].result.Bgroup),
             Sgroup: JSON.stringify(res.records[i].result.Sgroup),
           });
           //转化图片路径
-          console.log('getData',i, this.tableData[i].image_path)
-          this.tableData[i].image_path = this.tableData[i].image_path.replace(/\\/g, '/').replace(/^.*validate\//, '../../public/');
           console.log('getData',i, this.tableData[i].image_path);
         }
 
@@ -174,16 +173,17 @@ export default {
       }).then((res) => {
         console.log("res", res);
         console.log("1", res.records);
+        console.log('length ', res.records.length);
         for (let i = 0; i < res.records.length; i++) {
+          let img_path = res.records[i].image_path.replace(/\\/g, '/').replace(/^.*validate\//, '../../public/');
+          console.log('img_path', img_path);
           this.tableData.push({
-            image_path: res.records[i].image_path,
+            image_path: img_path,
             process_time: res.records[i].process_time,
             Bgroup: JSON.stringify(res.records[i].result.Bgroup),
             Sgroup: JSON.stringify(res.records[i].result.Sgroup),
           });
           //转化图片路径
-          console.log(i, this.tableData[i].image_path)
-          this.tableData[i].image_path = this.tableData[i].image_path.replace(/\\/g, '/').replace(/^.*validate\//, '../../public/');
           console.log(i,  this.tableData[i].image_path);
         }
         // 将数据的长度赋值给total_records
@@ -191,7 +191,8 @@ export default {
         // 将页面的总数赋值
         this.total_pages = res.total_pages;
         console.log('total_records',this.total_records);
-        console.log('total_pages',this.total_pages);
+        console.log('total_pages', this.total_pages);
+        console.log('getHistory');
       });
     },
   },
