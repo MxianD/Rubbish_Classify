@@ -3,6 +3,28 @@
     <div class="send_img">
       <div style="margin-top: 50px">
         <h1>上传图片:</h1>
+        <center>
+          <!--开启摄像头-->
+          <div>
+            <el-button size="mini" type="primary" @click="callCamera"
+              >打开摄像头</el-button
+            >
+          </div>
+          <!--canvas截取流-->
+          <canvas ref="canvas" width="240" height="240"></canvas>
+          <!--图片展示-->
+          <video video ref="video" width="240" height="240" autoplay></video>
+          <div>
+            <!--确认-->
+            <el-button size="mini" type="primary" @click="photograph"
+              >拍照</el-button
+            >
+            <!--关闭-->
+            <el-button size="mini" type="danger" @click="closeCamera"
+              >关闭</el-button
+            >
+          </div>
+        </center>
       </div>
     </div>
     <div class="progress_bar">
@@ -65,9 +87,34 @@ export default {
       username: "scq",
       result_data: [],
       identify_percentage: 0, // 假数据
+      result: [],
+      resultList: [],
+      loading: true,
+      img:false,
     };
   },
   methods: {
+    async submitUpload() {
+      if (this.img != '') {
+        this.loading = true;
+        let param = new FormData()  // 创建form对象
+        param.append('file', this.img, this.img.name)  // 通过append向form对象添加数据
+        request({
+          url: "/rubbish",
+          method: "post",
+          data: formData,
+          contentType: false, // 告诉axios不要去设置Content-Type请求头
+        }).then((res) => {
+          console.log('res',res);
+          this.result = res;
+
+          let str = "此物品是" + Object.values(this.result[0])[0]
+          this.resultList.push(str)
+          this.loading = false;
+          this.img = ''
+        })
+      }
+    },
     // 判断图片格式
     beforeAvatarUploadImage(file) {
       const isJpeg = file.type === "image/png" || file.type === "image/jpg";
@@ -100,7 +147,7 @@ export default {
       this.result_data = [];
       this.identify_percentage = 0;
     },
-      uploadForm() {
+    uploadForm() {
       const formData = new FormData();
       this.fileList.forEach((file) => {
         console.log("files", file.raw, file.name);
