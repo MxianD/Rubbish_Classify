@@ -3,10 +3,10 @@
     <div class="send_img">
       <div style="margin-top: 50px">
         <h1>上传图片:</h1>
-        <center>
-          <!--开启摄像头-->
+        <!--开启摄像头-->
+        <div style="margin-top: 20px;">
           <div>
-            <el-button size="mini" type="primary" @click="callCamera"
+            <el-button size="mini" type="info" @click="callCamera"
               >打开摄像头</el-button
             >
           </div>
@@ -16,7 +16,7 @@
           <video video ref="video" width="240" height="240" autoplay></video>
           <div>
             <!--确认-->
-            <el-button size="mini" type="primary" @click="photograph"
+            <el-button size="mini" type="info" plain @click="photograph"
               >拍照</el-button
             >
             <!--关闭-->
@@ -24,7 +24,7 @@
               >关闭</el-button
             >
           </div>
-        </center>
+        </div>
       </div>
     </div>
     <div class="progress_bar">
@@ -48,25 +48,23 @@
             <div slot="header" class="clearfix">
               <span style="font-size: 20px">识别结果</span>
             </div>
-            <div
-              v-for="o in this.result_data.length"
-              :key="o"
-              class="text item"
-              style="margin-top: 20px"
-            >
-              {{ "图片" + o }}:{{ result_data[o - 1] }}
-            </div>
+            <el-table :data="result_data" stripe style="width: 100%">
+              <el-table-column prop="Bgroup" label="大类" width="180">
+              </el-table-column>
+              <el-table-column prop="Sgroup" label="小类" width="180">
+              </el-table-column>
+            </el-table>
           </el-card>
         </div>
       </div>
 
       <div class="end">
         <div class="buttton_group">
-          <el-button @click="uploadForm" style="margin-right: 20px" type="info"
+          <el-button
+            @click="submitUpload"
+            style="margin-right: 20px"
+            type="info"
             >上传</el-button
-          >
-          <el-button @click="deleteForm" style="margin-right: 50px"
-            >清除</el-button
           >
         </div>
       </div>
@@ -90,30 +88,78 @@ export default {
       result: [],
       resultList: [],
       loading: true,
-      img:false,
+      img: "",
     };
   },
   methods: {
-    async submitUpload() {
-      if (this.img != '') {
+    dataURLtoFile(dataurl, filename) {
+      var arr = dataurl.split(","),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
+    },
+    submitUpload() {
+      for (let i = 0; i < 100; i += 25) {
+        this.identify_percentage += 25;
+      }
+      if (this.img != "") {
         this.loading = true;
-        let param = new FormData()  // 创建form对象
-        param.append('file', this.img, this.img.name)  // 通过append向form对象添加数据
+        let formData = new FormData(); // 创建form对象
+        formData.append("file", this.img, this.img.name); // 通过append向form对象添加数据
         request({
           url: "/rubbish",
           method: "post",
           data: formData,
           contentType: false, // 告诉axios不要去设置Content-Type请求头
         }).then((res) => {
-          console.log('res',res);
-          this.result = res;
+          console.log("res", res);
+          this.result_data = res;
 
-          let str = "此物品是" + Object.values(this.result[0])[0]
-          this.resultList.push(str)
+          let str = "此物品是" + Object.values(this.result[0])[0];
+          this.resultList.push(str);
           this.loading = false;
-          this.img = ''
-        })
+          this.img = "";
+        });
       }
+    },
+    //调用camera
+    async callCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        this.$refs.video.srcObject = stream;
+      } catch (err) {
+        console.error("Error starting camera", err);
+      }
+    },
+    //拍照
+    photograph() {
+      let ctx = this.$refs["canvas"].getContext("2d"); // 把当前视频帧内容渲染到canvas上
+      ctx.drawImage(this.$refs["video"], 0, 0, 224, 224); // 转base64格式、图片格式转换、图片质量压缩
+      let imgBase64 = this.$refs["canvas"].toDataURL("image/jpeg", 0.7);
+      this.img = this.dataURLtoFile(imgBase64, "img");
+    },
+    // 关闭摄像头
+    closeCamera() {
+      this.img = "";
+      let ctx = this.$refs["canvas"].getContext("2d");
+      ctx.clearRect(0, 0, 240, 240);
+      if (!this.$refs["video"].srcObject) {
+        this.dialogCamera = false;
+        return;
+      }
+      let stream = this.$refs["video"].srcObject;
+      let tracks = stream.getTracks();
+      tracks.forEach((track) => {
+        track.stop();
+      });
+      this.$refs["video"].srcObject = null;
     },
     // 判断图片格式
     beforeAvatarUploadImage(file) {
@@ -147,46 +193,6 @@ export default {
       this.result_data = [];
       this.identify_percentage = 0;
     },
-    uploadForm() {
-      const formData = new FormData();
-      this.fileList.forEach((file) => {
-        console.log("files", file.raw, file.name);
-        formData.append("files", file.raw, file.name);
-      });
-      formData.append("username", this.username); // 自定义参数
-      console.log("formData", formData.getAll("files")[0]);
-      for (var value of formData.values()) {
-        console.log(value);
-      }
-      for (let i = 0; i < 100; i += 25) {
-        this.identify_percentage += 25;
-      }
-      request({
-        url: "/rubbish",
-        method: "post",
-        data: formData,
-        contentType: false, // 告诉axios不要去设置Content-Type请求头
-      }).then((res) => {
-        console.log("res", res);
-        this.result_data = res;
-
-        //后端res里面没有状态码
-        // //看具体接口怎么写的来定
-        // if (res && res.code == "200") {
-        //   // this.$message({
-        //   //     type: "success",
-        //   //     message: "导入成功"
-        //   // });
-        //   console.log("yes");
-        // } else {
-        //   // this.$message({
-        //   //     type: "error",
-        //   //     message: "导入失败," + res.data.msg
-        //   // });
-        //   console.log("wrong");
-        // }
-      });
-    },
   },
 };
 </script>
@@ -195,6 +201,7 @@ export default {
 .send_img {
   flex: 8;
   margin-left: 30px;
+
 }
 .progress_bar {
   flex: 2;

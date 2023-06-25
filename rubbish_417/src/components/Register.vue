@@ -95,7 +95,6 @@
               data: userInfo
             }).then((res) => { // 当收到后端的响应时执行该括号内的代码，res 为响应信息，也就是后端返回的信息
                 console.log('res', res);
-                console.log('123', this.ruleForm);
                 console.log('userInfo', userInfo);
               if (res.success === true) {  // 当响应的编码为 0 时，说明注册成功
                 // 显示后端响应的成功信息

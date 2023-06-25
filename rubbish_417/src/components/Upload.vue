@@ -85,7 +85,7 @@ export default {
   methods: {
     //card行号
     indexMethod(index) {
-        return index;
+        return index+1;
       },
     // 判断图片格式
     beforeAvatarUploadImage(file) {
